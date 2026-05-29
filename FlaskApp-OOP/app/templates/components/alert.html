@@ -1,0 +1,8 @@
+{# category, message #}
+<div class="alert alert-{{ category }}" role="alert">
+  {% if category == 'success' %}<i data-feather="check-circle" aria-hidden="true"></i>
+  {% elif category == 'danger' %}<i data-feather="alert-circle" aria-hidden="true"></i>
+  {% elif category == 'warning' %}<i data-feather="alert-triangle" aria-hidden="true"></i>
+  {% else %}<i data-feather="info" aria-hidden="true"></i>{% endif %}
+  <span>{{ message }}</span>
+</div>
