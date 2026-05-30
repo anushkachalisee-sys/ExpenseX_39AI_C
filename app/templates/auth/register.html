@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register — ExpenseX</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<div class="auth-page">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="logo-text">Expense<span>X</span></div>
+      <p class="text-muted text-sm" style="margin-top:var(--sp-3)">Start tracking your finances in NPR.</p>
+    </div>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="flash-stack">
+      {% for category, message in messages %}
+      <div class="alert alert-{{ category }}">
+        {% if category == 'success' %}<i data-feather="check-circle"></i>
+        {% elif category == 'danger' %}<i data-feather="x-circle"></i>
+        {% else %}<i data-feather="info"></i>{% endif %}
+        <span>{{ message }}</span>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+    <form method="POST" action="{{ url_for('auth.register') }}">
+      <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+      <div class="form-group">
+        <label class="form-label" for="name">Full Name</label>
+        <input type="text" id="name" name="name" class="form-control" required placeholder="Your name">
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="email">Email</label>
+        <input type="email" id="email" name="email" class="form-control" required placeholder="you@example.com">
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="password">Password</label>
+        <input type="password" id="password" name="password" class="form-control" required minlength="6" placeholder="Min. 6 characters">
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="confirm_password">Confirm Password</label>
+        <input type="password" id="confirm_password" name="confirm_password" class="form-control" required placeholder="Repeat password">
+      </div>
+      <button type="submit" class="btn btn-primary" style="width:100%;margin-top:var(--sp-2)">Create Account</button>
+    </form>
+    <p class="text-muted text-sm" style="text-align:center;margin-top:var(--sp-6)">
+      Already have an account? <a href="{{ url_for('auth.login') }}">Sign in</a>
+    </p>
+  </div>
+</div>
+<script src="https://unpkg.com/feather-icons/dist/feather.min.js"></script>
+<script>feather.replace({ 'stroke-width': 1.5 });</script>
+</body>
+</html>

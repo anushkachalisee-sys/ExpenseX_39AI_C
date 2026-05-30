@@ -1,0 +1,6 @@
+{# Usage: {% include 'components/user_avatar.html' with context %} or pass name= #}
+{% set _name = name if name is defined else session.user_name %}
+{% set _size = size if size is defined else '' %}
+<div class="user-avatar{% if _size %} user-avatar--{{ _size }}{% endif %}"{% if title is defined %} title="{{ title }}"{% endif %}>
+  {{ user_initials(_name) }}
+</div>

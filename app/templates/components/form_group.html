@@ -1,0 +1,17 @@
+{# label, name, type (text|email|password|number|date|month|file), id, value, required, hint, input_class, options (for select) #}
+<div class="form-group">
+  {% if label %}
+  <label class="form-label"{% if id %} for="{{ id }}"{% endif %}>{{ label }}</label>
+  {% endif %}
+  {% if type == 'select' %}
+  <select name="{{ name }}" id="{{ id }}" class="form-select{% if input_class %} {{ input_class }}{% endif %}"{% if required %} required{% endif %}>
+    {{ options|safe }}
+  </select>
+  {% elif type == 'textarea' %}
+  <textarea name="{{ name }}" id="{{ id }}" class="form-textarea{% if input_class %} {{ input_class }}{% endif %}"{% if required %} required{% endif %}>{{ value|default('') }}</textarea>
+  {% else %}
+  <input type="{{ type|default('text') }}" name="{{ name }}" id="{{ id }}" class="form-input{% if input_class %} {{ input_class }}{% endif %}"
+    value="{{ value|default('') }}"{% if required %} required{% endif %}{% if step %} step="{{ step }}"{% endif %}{% if min is defined %} min="{{ min }}"{% endif %}{% if accept %} accept="{{ accept }}"{% endif %}>
+  {% endif %}
+  {% if hint %}<p class="form-hint">{{ hint }}</p>{% endif %}
+</div>

@@ -1,0 +1,12 @@
+{# title, subtitle (optional), actions_html (optional caller block alternative via include) #}
+<div class="page-header">
+  <div class="page-header-text">
+    {% if title %}<h2 class="page-header-title">{{ title }}</h2>{% endif %}
+    {% if subtitle %}<p class="page-header-subtitle">{{ subtitle }}</p>{% endif %}
+  </div>
+  {% if actions %}
+  <div class="page-header-actions btn-group">
+    {{ actions|safe }}
+  </div>
+  {% endif %}
+</div>

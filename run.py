@@ -1,10 +1,16 @@
-from flask import Flask
+import os
 
-app = Flask(__name__)
+from dotenv import load_dotenv
 
-@app.route("/")
-def home():
-    return "Hello, World! This is my first Flask website."
+load_dotenv()
+
+from app import create_app
+
+app = create_app()
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(
+        debug=os.environ.get("FLASK_DEBUG", "1") == "1",
+        host=os.environ.get("FLASK_HOST", "127.0.0.1"),
+        port=int(os.environ.get("FLASK_PORT", "5000")),
+    )
