@@ -1,0 +1,6 @@
+{# Wraps table content passed via caller or include pattern — use table_open/table_close macros #}
+<div class="table-container">
+  <table class="data-table">
+    {{ caller() if caller is defined else '' }}
+  </table>
+</div>

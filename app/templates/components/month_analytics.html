@@ -1,0 +1,41 @@
+<div class="month-analytics">
+  <div class="analytics-metric analytics-metric--income">
+    <div class="analytics-metric-head">
+      <span class="analytics-label"><i data-feather="trending-up"></i> Income</span>
+      <span class="analytics-amount text-income">{{ format_currency(month_analytics.income.amount, session.currency, currencies) }}</span>
+    </div>
+    <div class="analytics-bar-track">
+      <div class="analytics-bar-fill analytics-bar-fill--income" data-animate-bar style="width: {{ month_analytics.income.pct }}%"></div>
+    </div>
+  </div>
+  <div class="analytics-metric analytics-metric--expense">
+    <div class="analytics-metric-head">
+      <span class="analytics-label"><i data-feather="trending-down"></i> Expenses</span>
+      <span class="analytics-amount text-expense">{{ format_currency(month_analytics.expense.amount, session.currency, currencies) }}</span>
+    </div>
+    <div class="analytics-bar-track">
+      <div class="analytics-bar-fill analytics-bar-fill--expense" data-animate-bar style="width: {{ month_analytics.expense.pct }}%"></div>
+    </div>
+  </div>
+  <div class="analytics-metric analytics-metric--budget">
+    <div class="analytics-metric-head">
+      <span class="analytics-label"><i data-feather="target"></i> Budget usage</span>
+      <span class="analytics-amount">{{ month_analytics.budget.pct|round(0) }}%</span>
+    </div>
+    <div class="analytics-bar-track">
+      <div class="analytics-bar-fill analytics-bar-fill--budget{% if month_analytics.budget.pct >= 100 %} is-over{% elif month_analytics.budget.pct >= 80 %} is-warn{% endif %}" data-animate-bar style="width: {{ [month_analytics.budget.pct, 100]|min }}%"></div>
+    </div>
+    {% if month_analytics.budget.limit > 0 %}
+    <p class="analytics-hint text-muted">Limit {{ format_currency(month_analytics.budget.limit, session.currency, currencies) }}</p>
+    {% endif %}
+  </div>
+  <div class="analytics-metric analytics-metric--remaining">
+    <div class="analytics-metric-head">
+      <span class="analytics-label"><i data-feather="wallet"></i> Remaining balance</span>
+      <span class="analytics-amount text-accent">{{ format_currency(month_analytics.remaining.amount, session.currency, currencies) }}</span>
+    </div>
+    <div class="analytics-bar-track">
+      <div class="analytics-bar-fill analytics-bar-fill--remaining" data-animate-bar style="width: {{ month_analytics.remaining.pct }}%"></div>
+    </div>
+  </div>
+</div>

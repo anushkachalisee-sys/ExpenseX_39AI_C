@@ -1,0 +1,6 @@
+{# label, value, variant (income|expense|balance|streak|default), icon (feather name) #}
+<div class="stat-card {{ variant|default('default') }}">
+  {% if icon %}<i data-feather="{{ icon }}" class="stat-icon" aria-hidden="true"></i>{% endif %}
+  <div class="stat-label">{{ label }}</div>
+  <div class="stat-value">{{ value }}</div>
+</div>

@@ -1,0 +1,18 @@
+<div class="topbar-right topbar-right-wrap">
+  <button type="button" id="theme-toggle" class="icon-btn" aria-label="Toggle theme">
+    <i data-feather="moon" id="theme-icon"></i>
+  </button>
+  <a href="{{ url_for('budget.index') }}" class="icon-btn" title="Budget alerts">
+    <i data-feather="alert-triangle"></i>
+    {% if alert_count > 0 %}
+    <span class="notif-badge">{{ alert_count }}</span>
+    {% endif %}
+  </a>
+  <button type="button" id="user-menu-btn" class="user-avatar user-avatar--btn" aria-label="User menu" aria-haspopup="true">
+    {{ user_initials(session.user_name) }}
+  </button>
+  <div id="user-dropdown" class="user-dropdown">
+    <a href="{{ url_for('auth.profile') }}"><i data-feather="user"></i> Profile</a>
+    <a href="{{ url_for('auth.logout') }}"><i data-feather="log-out"></i> Logout</a>
+  </div>
+</div>

@@ -1,0 +1,61 @@
+{% extends "base_user.html" %}
+{% block title %}Profile — ExpenseX{% endblock %}
+{% block page_title %}Profile{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>Profile Settings</h1>
+</div>
+<div class="grid-2">
+  <div class="card form-card">
+    <div class="card-header"><span class="card-title">Account Details</span></div>
+    <div class="card-body">
+      <form method="POST" action="{{ url_for('auth.profile') }}">
+        <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+        <div class="form-group">
+          <label class="form-label" for="name">Full Name</label>
+          <input type="text" id="name" name="name" class="form-control" value="{{ user.name }}" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="email">Email</label>
+          <input type="email" id="email" name="email" class="form-control" value="{{ user.email }}" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="currency">Display Currency</label>
+          <select id="currency" name="currency" class="form-select">
+            {% for code, c in currencies.items() %}
+            <option value="{{ code }}" {% if (user.currency or 'NPR') == code %}selected{% endif %}>{{ c.flag }} {{ code }} — {{ c.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="password">New Password <span class="text-muted">(optional)</span></label>
+          <input type="password" id="password" name="password" class="form-control" minlength="6" placeholder="Leave blank to keep current">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="confirm_password">Confirm Password</label>
+          <input type="password" id="confirm_password" name="confirm_password" class="form-control" placeholder="Confirm new password">
+        </div>
+        <button type="submit" class="btn btn-primary">
+          <i data-feather="check-circle"></i> Save Changes
+        </button>
+      </form>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header"><span class="card-title">Account Info</span></div>
+    <div class="card-body">
+      <div style="display:flex;align-items:center;gap:var(--sp-4);margin-bottom:var(--sp-6)">
+        <div class="avatar-initials" style="width:56px;height:56px;font-size:1.1rem">{{ user_initials(user.name) }}</div>
+        <div>
+          <div style="font-weight:600;font-size:1.1rem">{{ user.name }}</div>
+          <div class="text-muted text-sm">{{ user.email }}</div>
+        </div>
+      </div>
+      <div class="flex-between mb-4"><span class="text-muted">Role</span><span class="badge badge-user">{{ user.role | capitalize }}</span></div>
+      <div class="flex-between mb-4"><span class="text-muted">Currency</span><span class="mono">{{ user.currency or 'NPR' }}</span></div>
+      <div class="flex-between mb-4"><span class="text-muted">Login Streak</span><span class="mono">{{ user.streak or 0 }} days</span></div>
+      <div class="flex-between"><span class="text-muted">Member Since</span><span class="text-sm">{{ user.created_at.strftime('%b %d, %Y') if user.created_at else '—' }}</span></div>
+    </div>
+  </div>
+</div>
+{% endblock %}

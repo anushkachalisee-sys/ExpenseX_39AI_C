@@ -1,0 +1,11 @@
+<form method="POST" action="{{ url_for('auth.update_currency') }}" id="currency-form" class="currency-form">
+  <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+  <label class="sr-only" for="sidebar-currency">Display currency</label>
+  <select name="currency" id="sidebar-currency" class="currency-select" data-currency-select>
+    {% for code, c in currencies.items() %}
+    <option value="{{ code }}" {% if session.currency == code %}selected{% endif %}>
+      {{ code }} — {{ c.symbol }}
+    </option>
+    {% endfor %}
+  </select>
+</form>

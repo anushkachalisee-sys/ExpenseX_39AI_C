@@ -1,0 +1,16 @@
+{# tabs: list of {id, label, content}, active_tab id #}
+<div class="tabs" data-tabs>
+  <div class="tab-list" role="tablist">
+    {% for tab in tabs %}
+    <button type="button" class="tab-btn{% if tab.id == active_tab %} active{% endif %}" role="tab"
+      data-tab-target="{{ tab.id }}" aria-selected="{{ 'true' if tab.id == active_tab else 'false' }}">
+      {{ tab.label }}
+    </button>
+    {% endfor %}
+  </div>
+  {% for tab in tabs %}
+  <div class="tab-panel{% if tab.id == active_tab %} active{% endif %}" id="tab-{{ tab.id }}" role="tabpanel" data-tab-panel="{{ tab.id }}">
+    {{ tab.content|default('')|safe }}
+  </div>
+  {% endfor %}
+</div>

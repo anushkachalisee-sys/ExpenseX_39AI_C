@@ -187,22 +187,51 @@ class AuthController:
         return redirect(url_for("auth.login"))
 
     def dashboard(self):
+        user_id = session["user_id"]
         currency = session.get("currency", "NPR")
         month = date.today().strftime("%Y-%m")
-        streak = session.get("streak", 0)
+        summary = TransactionModel.get_monthly_summary(user_id, month)
+        prev_summary = TransactionModel.get_prev_month_summary(user_id)
+        totals = UserModel.get_totals(user_id)
+        today_expense = TransactionModel.get_today_expense(user_id)
+        recent = TransactionModel.get_recent(user_id, 5)
+        budget = BudgetModel.get_budget(user_id)
+        achievements = BudgetModel.get_achievements(user_id)
 
-        # Placeholder data until transaction/budget modules are wired up
-        summary = {"income": 45000.0, "expense": 28500.0}
-        totals = {"income": 120000.0, "expense": 78500.0}
-        total_balance = totals["income"] - totals["expense"]
+        monthly_limit = float(budget["monthly_limit"]) if budget else 0.0
+        daily_limit = float(budget["daily_limit"]) if budget else 0.0
+        monthly_expense = summary["expense"]
         balance = summary["income"] - summary["expense"]
-        monthly_limit = 35000.0
-        daily_limit = 1500.0
+        total_balance = totals["income"] - totals["expense"]
+
+        alerts = []
+        if monthly_limit > 0 and monthly_expense >= monthly_limit:
+            alerts.append(
+                {
+                    "type": "danger",
+                    "message": "You have reached or exceeded your monthly spending limit.",
+                }
+            )
+        if daily_limit > 0 and today_expense >= daily_limit:
+            alerts.append(
+                {
+                    "type": "warning",
+                    "message": "You have reached or exceeded your daily spending limit.",
+                }
+            )
+
+        streak = session.get("streak", 0)
+        BudgetModel.check_and_unlock_achievements(user_id, totals, streak)
+
         month_income = summary["income"]
         month_expense = summary["expense"]
         remaining_balance = month_income - month_expense
         scale = max(month_income, month_expense, monthly_limit, 1.0)
-        budget_pct = min(100.0, (month_expense / monthly_limit) * 100)
+        budget_pct = (
+            min(100.0, (month_expense / monthly_limit) * 100)
+            if monthly_limit > 0
+            else 0.0
+        )
 
         month_analytics = {
             "income": {
@@ -224,34 +253,18 @@ class AuthController:
             },
         }
 
-        recent = [
-            {
-                "date": date.today().isoformat(),
-                "type": "expense",
-                "category_name": "Food",
-                "amount": 850.0,
-                "description": "Lunch",
-            },
-            {
-                "date": (date.today() - timedelta(days=1)).isoformat(),
-                "type": "income",
-                "category_name": "Salary",
-                "amount": 45000.0,
-                "description": "Monthly salary",
-            },
-        ]
-        achievements = []
-        alerts = []
         score = health_score(totals["income"], totals["expense"])
-        sparklines = {
-            "income": [30000, 32000, 35000, 38000, 42000, 45000],
-            "expense": [22000, 24000, 25000, 26000, 27000, 28500],
-            "balance": [8000, 8000, 10000, 12000, 15000, 16500],
-            "streak": [float(streak)] * 6,
-        }
-        inc_trend_pct, inc_trend_dir = 12.5, "up"
-        exp_trend_pct, exp_trend_dir = 5.2, "up"
-        bal_trend_pct, bal_trend_dir = 8.0, "up"
+        sparklines = build_sparkline_series(user_id)
+
+        inc_trend_pct, inc_trend_dir = trend_change(
+            summary["income"], prev_summary["income"]
+        )
+        exp_trend_pct, exp_trend_dir = trend_change(
+            summary["expense"], prev_summary["expense"]
+        )
+        bal_current = summary["income"] - summary["expense"]
+        bal_prev = prev_summary["income"] - prev_summary["expense"]
+        bal_trend_pct, bal_trend_dir = trend_change(bal_current, bal_prev)
 
         return render_template(
             "auth/dashboard.html",
@@ -259,9 +272,9 @@ class AuthController:
             totals=totals,
             balance=balance,
             total_balance=total_balance,
-            today_expense=0.0,
+            today_expense=today_expense,
             recent=recent,
-            budget=None,
+            budget=budget,
             achievements=achievements,
             alerts=alerts,
             month=month,

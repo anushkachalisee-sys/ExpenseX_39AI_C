@@ -6,6 +6,7 @@ from flask import Flask, render_template, session
 import config
 from app.database import Database
 from app.routes.auth_routes import AuthRoutes
+from app.routes.transaction_routes import TransactionRoutes
 from app.routes.placeholder_routes import register_placeholder_blueprints
 
 
@@ -30,6 +31,8 @@ def create_app():
 
     auth_routes = AuthRoutes()
     app.register_blueprint(auth_routes.bp)
+    transaction_routes = TransactionRoutes()
+    app.register_blueprint(transaction_routes.bp, url_prefix="/transactions")
     register_placeholder_blueprints(app)
 
     @app.before_request

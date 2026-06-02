@@ -1,0 +1,15 @@
+{# items: list of {url, label, variant, icon} OR pass pdf_url, excel_url #}
+<div class="btn-group export-buttons">
+  {% if pdf_url %}
+  <a href="{{ pdf_url }}" class="btn btn-danger btn-sm"><i data-feather="download"></i> PDF</a>
+  {% endif %}
+  {% if excel_url %}
+  <a href="{{ excel_url }}" class="btn btn-primary btn-sm"><i data-feather="download"></i> Excel</a>
+  {% endif %}
+  {% if template_url %}
+  <a href="{{ template_url }}" class="btn btn-secondary btn-sm"><i data-feather="download"></i> CSV Template</a>
+  {% endif %}
+  {% if add_url and add_label %}
+  <a href="{{ add_url }}" class="btn {{ add_variant|default('btn-primary') }}"><i data-feather="{{ add_icon|default('plus') }}"></i> {{ add_label }}</a>
+  {% endif %}
+</div>
