@@ -1,0 +1,84 @@
+{% extends "base_user.html" %}
+{% block title %}Income — ExpenseX{% endblock %}
+{% block page_title %}Income{% endblock %}
+{% block topbar_actions %}
+<a href="{{ url_for('transactions.add') }}?type=income" class="btn btn-primary btn-sm">
+  <i data-feather="plus"></i> Add Income
+</a>
+{% endblock %}
+{% block content %}
+<div class="filter-bar">
+  <form method="GET" class="flex gap-4" style="flex-wrap:wrap;align-items:flex-end;flex:1">
+    <div class="form-group" style="margin:0;min-width:140px">
+      <label class="form-label">Month</label>
+      <input type="month" name="month" class="form-control" value="{{ month }}">
+    </div>
+    <div class="form-group" style="margin:0;min-width:160px">
+      <label class="form-label">Category</label>
+      <select name="category_id" class="form-select">
+        <option value="">All Categories</option>
+        {% for c in categories %}
+        <option value="{{ c.id }}" {% if category_id == c.id %}selected{% endif %}>{{ c.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <button type="submit" class="btn btn-secondary btn-sm"><i data-feather="search"></i> Filter</button>
+  </form>
+  <div class="mono text-sm" style="color:var(--income)">Page total: {{ format_currency(total, session.currency or 'NPR', currencies) }}</div>
+</div>
+
+{% if transactions %}
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th class="col-date">Date</th>
+        <th class="col-cat">Category</th>
+        <th class="col-amount">Amount</th>
+        <th class="col-desc">Description</th>
+        <th class="col-actions">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for t in transactions %}
+      <tr>
+        <td>{{ t.date }}</td>
+        <td>{{ t.category_name or '—' }}</td>
+        <td class="amount-income">{{ format_currency(t.amount, session.currency or 'NPR', currencies) }}</td>
+        <td>{{ t.description or '—' }}</td>
+        <td class="col-actions">
+          <a href="{{ url_for('transactions.edit', txn_id=t.id) }}" class="icon-btn" title="Edit"><i data-feather="edit-2"></i></a>
+          <form method="POST" action="{{ url_for('transactions.delete', txn_id=t.id) }}" style="display:inline" onsubmit="return confirm('Delete this transaction?')">
+            <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+            <button type="submit" class="icon-btn" title="Delete"><i data-feather="trash-2"></i></button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% if pagination.total_pages > 1 %}
+<div class="pagination">
+  {% if pagination.has_prev %}
+  <a href="?page={{ pagination.page - 1 }}&month={{ month }}{% if category_id %}&category_id={{ category_id }}{% endif %}">Prev</a>
+  {% endif %}
+  <span class="active">{{ pagination.page }} / {{ pagination.total_pages }}</span>
+  {% if pagination.has_next %}
+  <a href="?page={{ pagination.page + 1 }}&month={{ month }}{% if category_id %}&category_id={{ category_id }}{% endif %}">Next</a>
+  {% endif %}
+</div>
+{% endif %}
+{% else %}
+<div class="card">
+  <div class="empty-state">
+    <div class="empty-state-icon"><i data-feather="trending-up"></i></div>
+    <h3>No income recorded</h3>
+    <p>Add your first income entry for {{ month }}.</p>
+    <a href="{{ url_for('transactions.add') }}?type=income" class="btn btn-primary btn-sm mt-4">
+      <i data-feather="plus"></i> Add Income
+    </a>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

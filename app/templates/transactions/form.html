@@ -1,0 +1,68 @@
+{% extends "base_user.html" %}
+{% block title %}{% if transaction %}Edit{% else %}Add{% endif %} {{ txn_type | capitalize }} — ExpenseX{% endblock %}
+{% block page_title %}{% if transaction %}Edit{% else %}Add{% endif %} {{ txn_type | capitalize }}{% endblock %}
+{% block content %}
+<div class="card form-card">
+  <div class="card-header">
+    <span class="card-title">{% if transaction %}Edit Transaction{% else %}New Transaction{% endif %}</span>
+    <a href="{{ url_for('transactions.list_income' if txn_type == 'income' else 'transactions.list_expense') }}" class="btn btn-ghost btn-sm">
+      <i data-feather="x"></i> Cancel
+    </a>
+  </div>
+  <div class="card-body">
+    <form method="POST">
+      <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+      <input type="hidden" name="type" value="{{ txn_type }}">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="amount">Amount ({{ session.currency or 'NPR' }})</label>
+          <input type="number" id="amount" name="amount" class="form-control mono" step="0.01" min="0.01" required
+            value="{% if transaction %}{{ display_amount(transaction.amount, session.currency or 'NPR', currencies) }}{% endif %}"
+            placeholder="0.00">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="date">Date</label>
+          <input type="date" id="date" name="date" class="form-control" required
+            value="{{ transaction.date if transaction else today }}">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="category_id">Category</label>
+        <select id="category_id" name="category_id" class="form-select">
+          <option value="">Uncategorized</option>
+          {% for c in categories %}
+          <option value="{{ c.id }}" {% if transaction and transaction.category_id == c.id %}selected{% endif %}>{{ c.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="description">Description</label>
+        <input type="text" id="description" name="description" class="form-control" maxlength="255"
+          value="{{ transaction.description if transaction else '' }}" placeholder="What was this for?">
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="notes">Notes</label>
+        <textarea id="notes" name="notes" class="form-control" placeholder="Optional notes">{{ transaction.notes if transaction else '' }}</textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-check">
+          <input type="checkbox" id="is_recurring" name="is_recurring" {% if transaction and transaction.is_recurring %}checked{% endif %}>
+          <label class="form-label" for="is_recurring" style="margin:0">Recurring</label>
+        </div>
+        <div class="form-group" style="margin:0">
+          <select name="recurrence" class="form-select">
+            <option value="">Frequency</option>
+            <option value="weekly" {% if transaction and transaction.recurrence == 'weekly' %}selected{% endif %}>Weekly</option>
+            <option value="monthly" {% if transaction and transaction.recurrence == 'monthly' %}selected{% endif %}>Monthly</option>
+            <option value="yearly" {% if transaction and transaction.recurrence == 'yearly' %}selected{% endif %}>Yearly</option>
+          </select>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary">
+        <i data-feather="check-circle"></i>
+        {% if transaction %}Update{% else %}Save{% endif %} {{ txn_type | capitalize }}
+      </button>
+    </form>
+  </div>
+</div>
+{% endblock %}
