@@ -1,0 +1,45 @@
+{% extends "base_user.html" %}
+{% block title %}Categories — ExpenseX{% endblock %}
+{% block page_title %}Categories{% endblock %}
+{% block topbar_actions %}
+<a href="{{ url_for('categories.add') }}" class="btn btn-primary btn-sm">
+  <i data-feather="plus"></i> Add Category
+</a>
+{% endblock %}
+{% block content %}
+{% if categories %}
+<div class="category-grid">
+  {% for c in categories %}
+  <div class="category-card {% if not c.user_id %}global{% endif %}">
+    <div class="flex-between">
+      <span class="badge badge-{{ c.type }}">{{ c.type }}</span>
+      {% if c.user_id %}
+      <div class="flex gap-4">
+        <a href="{{ url_for('categories.edit', cat_id=c.id) }}" class="icon-btn" title="Edit"><i data-feather="edit-2"></i></a>
+        <form method="POST" action="{{ url_for('categories.delete', cat_id=c.id) }}" onsubmit="return confirm('Delete category?')">
+          <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+          <button type="submit" class="icon-btn" title="Delete"><i data-feather="trash-2"></i></button>
+        </form>
+      </div>
+      {% else %}
+      <span class="text-sm text-muted">Global</span>
+      {% endif %}
+    </div>
+    <div class="category-card-name truncate">{{ c.name }}</div>
+    <div class="category-card-meta">{{ c.txn_count or 0 }} transaction{% if (c.txn_count or 0) != 1 %}s{% endif %}</div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="card">
+  <div class="empty-state">
+    <div class="empty-state-icon"><i data-feather="tag"></i></div>
+    <h3>No categories yet</h3>
+    <p>Create categories to organize your income and expenses.</p>
+    <a href="{{ url_for('categories.add') }}" class="btn btn-primary btn-sm mt-4">
+      <i data-feather="plus"></i> Add Category
+    </a>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
