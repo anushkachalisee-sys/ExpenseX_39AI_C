@@ -1,0 +1,84 @@
+{% extends "base_admin.html" %}
+{% block title %}Global Categories — ExpenseX Admin{% endblock %}
+{% block page_title %}Global Categories{% endblock %}
+{% block content %}
+<div class="tabs" id="cat-tabs">
+  <button type="button" class="tab-btn active" data-tab="expense">Expense</button>
+  <button type="button" class="tab-btn" data-tab="income">Income</button>
+</div>
+
+{% set expense_cats = categories | selectattr('type', 'equalto', 'expense') | list %}
+{% set income_cats = categories | selectattr('type', 'equalto', 'income') | list %}
+
+<div class="tab-panel active" id="panel-expense">
+  <form method="POST" action="{{ url_for('admin.add_global_category') }}" class="filter-bar" style="margin-top:0">
+    <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+    <input type="hidden" name="type" value="expense">
+    <div class="form-group" style="margin:0;flex:1">
+      <input type="text" name="name" class="form-control" placeholder="New expense category" required>
+    </div>
+    <button type="submit" class="btn btn-primary btn-sm"><i data-feather="plus"></i> Add</button>
+  </form>
+  {% if expense_cats %}
+  <div class="category-grid">
+    {% for c in expense_cats %}
+    <div class="category-card global">
+      <div class="flex-between">
+        <span class="badge badge-expense">expense</span>
+        <form method="POST" action="{{ url_for('admin.delete_global_category', cat_id=c.id) }}" onsubmit="return confirm('Delete global category?')">
+          <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+          <button type="submit" class="icon-btn"><i data-feather="trash-2"></i></button>
+        </form>
+      </div>
+      <div class="category-card-name">{{ c.name }}</div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty-state-inline"><p>No global expense categories.</p></div>
+  {% endif %}
+</div>
+
+<div class="tab-panel" id="panel-income">
+  <form method="POST" action="{{ url_for('admin.add_global_category') }}" class="filter-bar" style="margin-top:0">
+    <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+    <input type="hidden" name="type" value="income">
+    <div class="form-group" style="margin:0;flex:1">
+      <input type="text" name="name" class="form-control" placeholder="New income category" required>
+    </div>
+    <button type="submit" class="btn btn-primary btn-sm"><i data-feather="plus"></i> Add</button>
+  </form>
+  {% if income_cats %}
+  <div class="category-grid">
+    {% for c in income_cats %}
+    <div class="category-card global">
+      <div class="flex-between">
+        <span class="badge badge-income">income</span>
+        <form method="POST" action="{{ url_for('admin.delete_global_category', cat_id=c.id) }}" onsubmit="return confirm('Delete global category?')">
+          <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+          <button type="submit" class="icon-btn"><i data-feather="trash-2"></i></button>
+        </form>
+      </div>
+      <div class="category-card-name">{{ c.name }}</div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty-state-inline"><p>No global income categories.</p></div>
+  {% endif %}
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+document.querySelectorAll('#cat-tabs .tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#cat-tabs .tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
+    feather.replace({ 'stroke-width': 1.5 });
+  });
+});
+feather.replace({ 'stroke-width': 1.5 });
+</script>
+{% endblock %}

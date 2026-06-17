@@ -1,0 +1,73 @@
+{% extends "base_admin.html" %}
+{% block title %}Users — ExpenseX Admin{% endblock %}
+{% block page_title %}User Management{% endblock %}
+{% block content %}
+<div class="filter-bar">
+  <div class="search-wrap">
+    <i data-feather="search"></i>
+    <input type="text" id="user-search" class="search-input" placeholder="Search by name or email...">
+  </div>
+</div>
+{% if users %}
+<div class="table-wrap">
+  <table id="users-table">
+    <thead>
+      <tr>
+        <th style="width:50px"></th>
+        <th>Name</th>
+        <th>Email</th>
+        <th class="col-type">Role</th>
+        <th class="col-type">Status</th>
+        <th>Txns</th>
+        <th class="col-date">Joined</th>
+        <th class="col-actions">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for u in users %}
+      <tr data-search="{{ u.name }} {{ u.email }}">
+        <td><div class="avatar" style="width:32px;height:32px;font-size:0.65rem">{{ user_initials(u.name) }}</div></td>
+        <td>{{ u.name }}</td>
+        <td>{{ u.email }}</td>
+        <td>
+          <form method="POST" action="{{ url_for('admin.change_role', user_id=u.id) }}" style="display:inline">
+            <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+            <select name="role" class="form-select" style="padding:4px 8px;font-size:0.75rem" onchange="this.form.submit()">
+              <option value="user" {% if u.role == 'user' %}selected{% endif %}>User</option>
+              <option value="admin" {% if u.role == 'admin' %}selected{% endif %}>Admin</option>
+            </select>
+          </form>
+        </td>
+        <td><span class="badge {% if u.is_active %}badge-active{% else %}badge-inactive{% endif %}">{% if u.is_active %}Active{% else %}Inactive{% endif %}</span></td>
+        <td class="mono">{{ u.txn_count or 0 }}</td>
+        <td>{{ u.created_at.strftime('%Y-%m-%d') if u.created_at else '—' }}</td>
+        <td class="col-actions">
+          <a href="{{ url_for('admin.user_detail', user_id=u.id) }}" class="icon-btn" title="View"><i data-feather="eye"></i></a>
+          <form method="POST" action="{{ url_for('admin.toggle_status', user_id=u.id) }}" style="display:inline">
+            <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+            <button type="submit" class="icon-btn" title="Toggle status"><i data-feather="settings"></i></button>
+          </form>
+          {% if u.id != session.user_id %}
+          <form method="POST" action="{{ url_for('admin.delete_user', user_id=u.id) }}" style="display:inline"
+                data-confirm="Delete {{ u.name }}? All transactions, budgets, and goals will be permanently removed.">
+            <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+            <button type="submit" class="icon-btn icon-btn-danger" title="Delete user"><i data-feather="trash-2"></i></button>
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% if pagination.total_pages > 1 %}
+<div class="pagination">
+  {% if pagination.has_prev %}<a href="?page={{ pagination.page - 1 }}">Prev</a>{% endif %}
+  <span class="active">{{ pagination.page }} / {{ pagination.total_pages }}</span>
+  {% if pagination.has_next %}<a href="?page={{ pagination.page + 1 }}">Next</a>{% endif %}
+</div>
+{% endif %}
+{% else %}
+<div class="card"><div class="empty-state"><div class="empty-state-icon"><i data-feather="users"></i></div><h3>No users</h3></div></div>
+{% endif %}
+{% endblock %}

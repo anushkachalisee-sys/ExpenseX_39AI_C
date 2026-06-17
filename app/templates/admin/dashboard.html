@@ -1,0 +1,101 @@
+{% extends "base_admin.html" %}
+{% block title %}Admin — ExpenseX{% endblock %}
+{% block page_title %}Admin Overview{% endblock %}
+{% block head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+{% endblock %}
+{% block content %}
+<div class="admin-stat-grid">
+  <div class="stat-card balance">
+    <div class="stat-card-top"><span class="stat-label label-upper">Total Users</span><div class="stat-icon balance"><i data-feather="users"></i></div></div>
+    <div class="stat-value-hero">{{ stats.total_users }}</div>
+  </div>
+  <div class="stat-card income">
+    <div class="stat-card-top"><span class="stat-label label-upper">Active Users</span><div class="stat-icon income"><i data-feather="check-circle"></i></div></div>
+    <div class="stat-value-hero">{{ stats.active_users }}</div>
+  </div>
+  <div class="stat-card expense">
+    <div class="stat-card-top"><span class="stat-label label-upper">Transactions</span><div class="stat-icon expense"><i data-feather="activity"></i></div></div>
+    <div class="stat-value-hero">{{ stats.total_transactions }}</div>
+  </div>
+  <div class="stat-card streak">
+    <div class="stat-card-top"><span class="stat-label label-upper">Volume Tracked</span><div class="stat-icon streak"><i data-feather="bar-chart-2"></i></div></div>
+    <div class="stat-value-hero mono" style="font-family:var(--font-mono);font-size:1.5rem;font-style:normal">{{ format_currency(stats.volume_tracked, 'NPR', currencies) }}</div>
+  </div>
+</div>
+
+<div class="admin-layout">
+  <div class="card">
+    <div class="card-header"><span class="card-title">Activity Feed</span><i data-feather="activity"></i></div>
+    <div class="card-body">
+      {% if activity %}
+      <div class="activity-feed">
+        {% for entry in activity %}
+        <div class="activity-item">
+          <div class="activity-dot"></div>
+          <div class="activity-content">
+            <span class="activity-action">{{ entry.action }}</span>
+            <span class="activity-user">{{ entry.user_name or 'System' }}</span>
+            {% if entry.detail %}<span class="activity-detail">{{ entry.detail }}</span>{% endif %}
+          </div>
+          <span class="activity-time">{% if entry.created_at %}{{ entry.created_at.strftime('%H:%M') }}{% endif %}</span>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="empty-state-inline"><i data-feather="activity"></i><p>No activity logged yet.</p></div>
+      {% endif %}
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header"><span class="card-title">User Signups</span><span class="text-muted text-sm">Last 6 months</span></div>
+    <div class="card-body"><div class="chart-wrap-sm"><canvas id="signupChart"></canvas></div></div>
+  </div>
+</div>
+
+<div class="card mt-4">
+  <div class="card-header"><span class="card-title">Most Active Users</span></div>
+  {% if top_users %}
+  <div class="table-wrap" style="border:none;border-radius:0">
+    <table>
+      <thead><tr><th>Name</th><th>Email</th><th>Transactions</th><th>Joined</th><th></th></tr></thead>
+      <tbody>
+        {% for u in top_users %}
+        <tr>
+          <td>{{ u.name }}</td>
+          <td>{{ u.email }}</td>
+          <td class="mono">{{ u.txn_count }}</td>
+          <td>{{ u.created_at.strftime('%Y-%m-%d') if u.created_at else '—' }}</td>
+          <td class="col-actions"><a href="{{ url_for('admin.user_detail', user_id=u.id) }}" class="icon-btn"><i data-feather="eye"></i></a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="card-body"><div class="empty-state-inline"><p>No user activity yet.</p></div></div>
+  {% endif %}
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  new Chart(document.getElementById('signupChart'), {
+    type: 'bar',
+    data: {
+      labels: {{ signup_labels | tojson }},
+      datasets: [{ label: 'Signups', data: {{ signup_data | tojson }}, backgroundColor: 'rgba(79,126,255,0.75)', borderRadius: 6, borderSkipped: false }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: '#5A6A85', font: { size: 11 } } },
+        y: { grid: { color: 'rgba(30,43,63,0.8)' }, ticks: { stepSize: 1, color: '#5A6A85' }, beginAtZero: true }
+      }
+    }
+  });
+  feather.replace({ 'stroke-width': 1.5 });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,76 @@
+{% extends "base_admin.html" %}
+{% block title %}{{ user.name }} — Admin{% endblock %}
+{% block page_title %}User Detail{% endblock %}
+{% block topbar_actions %}
+<a href="{{ url_for('admin.users') }}" class="btn btn-secondary btn-sm"><i data-feather="chevron-down" style="transform:rotate(90deg)"></i> Back</a>
+{% if user.id != session.user_id %}
+<form method="POST" action="{{ url_for('admin.delete_user', user_id=user.id) }}"
+      data-confirm="Delete {{ user.name }}? All their data will be permanently removed.">
+  <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+  <button type="submit" class="btn btn-danger btn-sm"><i data-feather="trash-2"></i> Delete User</button>
+</form>
+{% endif %}
+{% endblock %}
+{% block content %}
+<div class="grid-2 mb-4">
+  <div class="card">
+    <div class="card-header"><span class="card-title">User Info</span></div>
+    <div class="card-body">
+      <div style="display:flex;gap:var(--sp-4);align-items:center;margin-bottom:var(--sp-6)">
+        <div class="avatar" style="width:56px;height:56px;font-size:1.1rem">{{ user_initials(user.name) }}</div>
+        <div>
+          <div style="font-weight:700;font-size:1.1rem">{{ user.name }}</div>
+          <div class="text-muted">{{ user.email }}</div>
+        </div>
+      </div>
+      <div class="flex-between mb-4"><span class="text-muted">Role</span><span class="badge badge-{{ user.role }}">{{ user.role | capitalize }}</span></div>
+      <div class="flex-between mb-4"><span class="text-muted">Status</span><span class="badge {% if user.is_active %}badge-active{% else %}badge-inactive{% endif %}">{% if user.is_active %}Active{% else %}Inactive{% endif %}</span></div>
+      <div class="flex-between mb-4"><span class="text-muted">Streak</span><span class="mono">{{ user.streak or 0 }} days</span></div>
+      <div class="flex-between mb-4"><span class="text-muted">Currency</span><span class="mono">{{ user.currency or 'NPR' }}</span></div>
+      <div class="flex-between mb-4"><span class="text-muted">Joined</span><span>{{ user.created_at.strftime('%b %d, %Y') if user.created_at else '—' }}</span></div>
+      <div class="flex-between"><span class="text-muted">Last Login</span><span>{{ user.last_login if user.last_login else '—' }}</span></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header"><span class="card-title">Financial Summary</span><span class="text-muted text-sm">Read only</span></div>
+    <div class="card-body">
+      <div class="flex-between mb-4"><span class="text-muted">Total Income</span><span class="mono amount-income">{{ format_currency(totals.income, 'NPR', currencies) }}</span></div>
+      <div class="flex-between mb-4"><span class="text-muted">Total Expense</span><span class="mono amount-expense">{{ format_currency(totals.expense, 'NPR', currencies) }}</span></div>
+      <div class="flex-between mb-4"><span class="text-muted">Balance</span><span class="mono">{{ format_currency(balance, 'NPR', currencies) }}</span></div>
+      <div class="flex-between"><span class="text-muted">Transactions</span><span class="mono">{{ txn_count }}</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header"><span class="card-title">Recent Transactions</span><span class="text-muted text-sm">Read only</span></div>
+  {% if transactions %}
+  <div class="table-wrap" style="border:none;border-radius:0">
+    <table>
+      <thead>
+        <tr>
+          <th class="col-date">Date</th>
+          <th class="col-type">Type</th>
+          <th class="col-amount">Amount (NPR)</th>
+          <th class="col-cat">Category</th>
+          <th class="col-desc">Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for t in transactions %}
+        <tr>
+          <td>{{ t.date }}</td>
+          <td><span class="badge badge-{{ t.type }}">{{ t.type | capitalize }}</span></td>
+          <td class="mono">{{ format_currency(t.amount, 'NPR', currencies) }}</td>
+          <td>{{ t.category_name or '—' }}</td>
+          <td>{{ t.description or '—' }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="card-body"><div class="empty-state-inline"><p>No transactions for this user.</p></div></div>
+  {% endif %}
+</div>
+{% endblock %}

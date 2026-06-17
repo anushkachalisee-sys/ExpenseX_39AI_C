@@ -6,11 +6,11 @@ from flask import Flask, render_template, session
 import config
 from app.database import Database
 from app.routes.auth_routes import AuthRoutes
+from app.routes.admin_routes import AdminRoutes
 from app.routes.budget_routes import BudgetRoutes
 from app.routes.category_routes import CategoryRoutes
 from app.routes.report_routes import ReportRoutes
 from app.routes.transaction_routes import TransactionRoutes
-from app.routes.placeholder_routes import register_placeholder_blueprints
 
 
 def user_initials(name):
@@ -42,7 +42,8 @@ def create_app():
     app.register_blueprint(budget_routes.bp, url_prefix="/budget")
     report_routes = ReportRoutes()
     app.register_blueprint(report_routes.bp, url_prefix="/reports")
-    register_placeholder_blueprints(app)
+    admin_routes = AdminRoutes()
+    app.register_blueprint(admin_routes.bp, url_prefix="/admin")
 
     @app.before_request
     def ensure_csrf_token():
