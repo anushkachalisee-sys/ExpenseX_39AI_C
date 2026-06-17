@@ -26,6 +26,75 @@
   margin-bottom: var(--sp-6);
 }
 
+.reports-filter {
+  padding: var(--sp-3) var(--sp-4);
+  margin-bottom: var(--sp-4);
+  align-items: stretch;
+}
+
+.reports-filter-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--sp-3);
+  width: auto;
+}
+
+.reports-filter-form .filter-field {
+  margin-bottom: 0;
+}
+
+.reports-filter-form .filter-field--range {
+  width: 132px;
+  flex: 0 0 132px;
+}
+
+.reports-filter-form .filter-field--month {
+  width: 156px;
+  flex: 0 0 156px;
+}
+
+.reports-filter-form .filter-field--date {
+  width: 148px;
+  flex: 0 0 148px;
+}
+
+.reports-filter-form .form-label {
+  margin-bottom: var(--sp-1);
+  font-size: 0.72rem;
+}
+
+.reports-filter-form .form-control,
+.reports-filter-form .form-select {
+  height: 38px;
+  padding: var(--sp-2) var(--sp-3);
+  font-size: 0.85rem;
+}
+
+.reports-filter-apply {
+  height: 38px;
+  flex: 0 0 auto;
+  align-self: flex-end;
+}
+
+@media (max-width: 640px) {
+  .reports-filter-form {
+    width: 100%;
+  }
+
+  .reports-filter-form .filter-field--range,
+  .reports-filter-form .filter-field--month,
+  .reports-filter-form .filter-field--date {
+    flex: 1 1 calc(50% - var(--sp-3));
+    width: auto;
+    min-width: 0;
+  }
+
+  .reports-filter-apply {
+    width: 100%;
+  }
+}
+
 .goals-section {
   overflow: hidden;
 }

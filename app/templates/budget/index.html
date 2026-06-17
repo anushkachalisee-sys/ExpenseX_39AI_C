@@ -1,0 +1,206 @@
+{% extends "base_user.html" %}
+{% block title %}Budget &amp; Goals — ExpenseX{% endblock %}
+{% block page_title %}Budget &amp; Goals{% endblock %}
+{% block content %}
+<div class="grid-2 mb-4">
+  <div class="card">
+    <div class="card-header"><span class="card-title">Spending Limits</span><i data-feather="target"></i></div>
+    <div class="card-body">
+      <form method="POST" action="{{ url_for('budget.set_budget') }}">
+        <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Monthly Limit ({{ session.currency or 'NPR' }})</label>
+            <input type="number" name="monthly_limit" class="form-control mono" step="0.01" min="0"
+              value="{{ display_amount(monthly_limit, session.currency or 'NPR', currencies) if monthly_limit else 0 }}">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Daily Limit ({{ session.currency or 'NPR' }})</label>
+            <input type="number" name="daily_limit" class="form-control mono" step="0.01" min="0"
+              value="{{ display_amount(daily_limit, session.currency or 'NPR', currencies) if daily_limit else 0 }}">
+          </div>
+        </div>
+        <div class="text-sm text-muted mb-4">
+          This month: {{ format_currency(summary.expense, session.currency or 'NPR', currencies) }} spent
+          {% if monthly_limit > 0 %} / {{ format_currency(monthly_limit, session.currency or 'NPR', currencies) }} limit{% endif %}
+        </div>
+        <button type="submit" class="btn btn-primary btn-sm"><i data-feather="check-circle"></i> Save Limits</button>
+      </form>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header"><span class="card-title">This Month</span></div>
+    <div class="card-body">
+      <div class="flex-between mb-4"><span class="text-muted">Income</span><span class="mono amount-income">{{ format_currency(summary.income, session.currency or 'NPR', currencies) }}</span></div>
+      <div class="flex-between mb-4"><span class="text-muted">Expenses</span><span class="mono amount-expense">{{ format_currency(summary.expense, session.currency or 'NPR', currencies) }}</span></div>
+      <div class="flex-between"><span class="text-muted">Today</span><span class="mono">{{ format_currency(today_expense, session.currency or 'NPR', currencies) }}</span></div>
+    </div>
+  </div>
+</div>
+
+<section class="goals-section card">
+  <div class="card-header goals-section-header">
+    <div>
+      <span class="card-title">Savings Goals</span>
+      <p class="goals-section-sub">Track progress toward what you are saving for</p>
+    </div>
+    <div class="goals-header-icon"><i data-feather="flag"></i></div>
+  </div>
+
+  <div class="goals-add-card">
+    <div class="goals-add-label label-upper">New goal</div>
+    <form method="POST" action="{{ url_for('budget.add_goal') }}" class="goals-add-form">
+      <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+      <div class="form-group goals-add-field">
+        <label class="form-label" for="new-goal-title">Goal name</label>
+        <input type="text" id="new-goal-title" name="title" class="form-control" placeholder="e.g. Emergency fund" required>
+      </div>
+      <div class="form-group goals-add-field">
+        <label class="form-label" for="new-goal-target">Target ({{ session.currency or 'NPR' }})</label>
+        <input type="number" id="new-goal-target" name="target_amount" class="form-control mono" step="0.01" min="0.01" placeholder="50000" required>
+      </div>
+      <div class="form-group goals-add-field">
+        <label class="form-label" for="new-goal-deadline">Deadline</label>
+        <input type="date" id="new-goal-deadline" name="deadline" class="form-control">
+      </div>
+      <button type="submit" class="btn btn-primary goals-add-btn">
+        <i data-feather="plus"></i> Add Goal
+      </button>
+    </form>
+  </div>
+
+  {% if goals %}
+  <div class="goals-grid">
+    {% for g in goals %}
+    {% set target_f = g.target_amount | float %}
+    {% set current_f = g.current_amount | float %}
+    {% set pct = ((current_f / target_f * 100) if target_f > 0 else 0) | round(1) %}
+    {% set pct_clamped = [pct, 100] | min %}
+    {% set remaining_npr = target_f - current_f if target_f > current_f else 0 %}
+    <article class="goal-card-enhanced {% if g.completed %}goal-completed{% endif %}">
+      <div class="goal-card-top">
+        <div class="goal-card-icon"><i data-feather="{% if g.completed %}check-circle{% else %}flag{% endif %}"></i></div>
+        <div class="goal-card-titles">
+          <h3 class="goal-card-name truncate">{{ g.title }}</h3>
+          {% if g.completed %}
+          <span class="badge badge-income goal-status-badge">Completed</span>
+          {% elif g.deadline %}
+          <span class="goal-deadline-meta"><i data-feather="calendar"></i> Due {{ g.deadline.strftime('%d %b %Y') }}</span>
+          {% else %}
+          <span class="goal-deadline-meta">No deadline set</span>
+          {% endif %}
+        </div>
+        <div class="goal-pct-ring" aria-hidden="true">
+          <svg viewBox="0 0 44 44" class="goal-ring-svg">
+            <circle cx="22" cy="22" r="18" fill="none" stroke="var(--border-default)" stroke-width="4"/>
+            <circle cx="22" cy="22" r="18" fill="none" stroke="{% if g.completed %}var(--income){% else %}var(--brand){% endif %}" stroke-width="4"
+              stroke-linecap="round" stroke-dasharray="{{ (pct_clamped / 100 * 113) | round(1) }} 113"
+              transform="rotate(-90 22 22)"/>
+          </svg>
+          <span class="goal-pct-text">{{ pct_clamped | int }}%</span>
+        </div>
+      </div>
+
+      <div class="goal-amounts">
+        <div class="goal-amount-block">
+          <span class="goal-amount-label">Saved</span>
+          <span class="goal-amount-value mono amount-income">{{ format_currency(g.current_amount, session.currency or 'NPR', currencies) }}</span>
+        </div>
+        <div class="goal-amount-divider"></div>
+        <div class="goal-amount-block">
+          <span class="goal-amount-label">Target</span>
+          <span class="goal-amount-value mono">{{ format_currency(g.target_amount, session.currency or 'NPR', currencies) }}</span>
+        </div>
+        {% if not g.completed and remaining_npr > 0 %}
+        <div class="goal-amount-divider"></div>
+        <div class="goal-amount-block">
+          <span class="goal-amount-label">Remaining</span>
+          <span class="goal-amount-value mono text-muted">{{ format_currency(remaining_npr, session.currency or 'NPR', currencies) }}</span>
+        </div>
+        {% endif %}
+      </div>
+
+      <div class="goal-progress-wrap">
+        <div class="goal-progress-bar">
+          <div class="goal-progress-fill {% if g.completed %}complete{% endif %}" style="width:{{ pct_clamped }}%"></div>
+        </div>
+      </div>
+
+      <details class="goal-edit-details">
+        <summary class="goal-edit-toggle">
+          <i data-feather="edit-2"></i> Update progress
+        </summary>
+        <form method="POST" action="{{ url_for('budget.update_goal', goal_id=g.id) }}" class="goal-edit-form">
+          <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+          <input type="hidden" name="title" value="{{ g.title }}">
+          <div class="goal-edit-fields">
+            <div class="form-group">
+              <label class="form-label">Current saved ({{ session.currency or 'NPR' }})</label>
+              <input type="number" name="current_amount" class="form-control mono" step="0.01" min="0"
+                value="{{ display_amount(g.current_amount, session.currency or 'NPR', currencies) }}">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Target ({{ session.currency or 'NPR' }})</label>
+              <input type="number" name="target_amount" class="form-control mono" step="0.01" min="0.01"
+                value="{{ display_amount(g.target_amount, session.currency or 'NPR', currencies) }}" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Deadline</label>
+              <input type="date" name="deadline" class="form-control" value="{{ g.deadline.strftime('%Y-%m-%d') if g.deadline else '' }}">
+            </div>
+          </div>
+          <div class="goal-edit-actions">
+            <button type="submit" class="btn btn-primary btn-sm"><i data-feather="check-circle"></i> Save</button>
+            <button type="button" class="btn btn-ghost btn-sm goal-delete-trigger" data-form="delete-goal-{{ g.id }}">
+              <i data-feather="trash-2"></i> Delete
+            </button>
+          </div>
+        </form>
+        <form id="delete-goal-{{ g.id }}" method="POST" action="{{ url_for('budget.delete_goal', goal_id=g.id) }}" class="goal-delete-form" data-confirm="Delete goal &quot;{{ g.title }}&quot;? This cannot be undone.">
+          <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+        </form>
+      </details>
+    </article>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="card-body">
+    <div class="empty-state">
+      <div class="empty-state-icon"><i data-feather="flag"></i></div>
+      <h3>No savings goals yet</h3>
+      <p>Set a target amount and track how close you are to your next milestone.</p>
+    </div>
+  </div>
+  {% endif %}
+</section>
+
+<div class="card mt-4">
+  <div class="card-header"><span class="card-title">Achievements</span><i data-feather="award"></i></div>
+  <div class="card-body">
+    {% set unlocked_titles = achievements | map(attribute='title') | list %}
+    <div class="achievement-grid">
+      {% for def in achievement_defs %}
+      <div class="achievement-item {% if def.title in unlocked_titles %}unlocked{% endif %}">
+        <i data-feather="{{ def.icon }}"></i>
+        <div class="text-sm" style="font-weight:600">{{ def.title }}</div>
+        <div class="text-sm text-muted">{{ def.description }}</div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+document.querySelectorAll('.goal-delete-trigger').forEach(function (btn) {
+  btn.addEventListener('click', function () {
+    var id = btn.getAttribute('data-form');
+    var form = document.getElementById(id);
+    if (!form) return;
+    var msg = form.getAttribute('data-confirm') || 'Delete this goal?';
+    if (window.confirm(msg)) form.submit();
+  });
+});
+if (typeof feather !== 'undefined') feather.replace({ 'stroke-width': 1.5 });
+</script>
+{% endblock %}

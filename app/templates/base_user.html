@@ -126,7 +126,9 @@
       <div class="topbar-center">
         <div class="topbar-search">
           <i data-feather="search" class="search-icon"></i>
-          <input type="text" id="global-search" placeholder="Search transactions…" autocomplete="off">
+          <input type="text" id="global-search" placeholder="Search transactions…" autocomplete="off"
+            data-search-url="{{ url_for('transactions.search') }}"
+            value="{{ request.args.get('q', '') if request.blueprint == 'transactions' and request.endpoint == 'transactions.search' else '' }}">
         </div>
       </div>
       <div class="topbar-right">

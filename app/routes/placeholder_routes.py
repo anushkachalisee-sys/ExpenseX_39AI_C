@@ -4,18 +4,6 @@ from flask import Blueprint, redirect, url_for
 
 
 def register_placeholder_blueprints(app):
-    budget = Blueprint("budget", __name__, url_prefix="/budget")
-
-    @budget.route("/")
-    def index():
-        return redirect(url_for("auth.dashboard"))
-
-    reports = Blueprint("reports", __name__, url_prefix="/reports")
-
-    @reports.route("/")
-    def index():
-        return redirect(url_for("auth.dashboard"))
-
     admin = Blueprint("admin", __name__, url_prefix="/admin")
 
     @admin.route("/")
@@ -38,5 +26,4 @@ def register_placeholder_blueprints(app):
     def global_categories():
         return redirect(url_for("auth.dashboard"))
 
-    for bp in (budget, reports, admin):
-        app.register_blueprint(bp)
+    app.register_blueprint(admin)

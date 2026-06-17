@@ -1,0 +1,441 @@
+{% extends "base_user.html" %}
+{% block title %}Reports — ExpenseX{% endblock %}
+{% block page_title %}Reports{% endblock %}
+{% block topbar_actions %}
+<div class="export-group">
+  <a href="{{ url_for('reports.export_csv') }}" class="btn btn-secondary btn-sm"><i data-feather="download"></i> CSV</a>
+  <a href="{{ url_for('reports.export_excel') }}" class="btn btn-secondary btn-sm"><i data-feather="download"></i> Excel</a>
+  <a href="{{ url_for('reports.export_pdf') }}" class="btn btn-secondary btn-sm"><i data-feather="download"></i> PDF</a>
+</div>
+{% endblock %}
+{% block head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+{% endblock %}
+{% block content %}
+<div class="filter-bar reports-filter">
+  <form method="GET" class="reports-filter-form">
+    <div class="form-group filter-field filter-field--range">
+      <label class="form-label" for="report-range">Range</label>
+      <select id="report-range" name="range" class="form-select">
+        <option value="monthly" {% if range_type == 'monthly' %}selected{% endif %}>Monthly</option>
+        <option value="weekly" {% if range_type == 'weekly' %}selected{% endif %}>Weekly</option>
+        <option value="yearly" {% if range_type == 'yearly' %}selected{% endif %}>Yearly</option>
+        <option value="custom" {% if range_type == 'custom' %}selected{% endif %}>Custom</option>
+      </select>
+    </div>
+    <div class="form-group filter-field filter-field--month" data-for="monthly">
+      <label class="form-label" for="report-month">Month</label>
+      <input type="month" id="report-month" name="month" class="form-control" value="{{ month }}">
+    </div>
+    <div class="form-group filter-field filter-field--date" data-for="custom">
+      <label class="form-label" for="report-start">Start</label>
+      <input type="date" id="report-start" name="start_date" class="form-control" value="{{ start_date }}">
+    </div>
+    <div class="form-group filter-field filter-field--date" data-for="custom">
+      <label class="form-label" for="report-end">End</label>
+      <input type="date" id="report-end" name="end_date" class="form-control" value="{{ end_date }}">
+    </div>
+    <button type="submit" class="btn btn-secondary btn-sm reports-filter-apply"><i data-feather="search"></i> Apply</button>
+  </form>
+</div>
+
+<div class="stat-grid reports-stat-grid">
+  <div class="stat-card income">
+    <div class="stat-card-top"><span class="stat-label label-upper">Period Income</span><div class="stat-icon income"><i data-feather="trending-up"></i></div></div>
+    <div class="stat-value-hero">{{ format_currency(summary.income, session.currency or 'NPR', currencies) }}</div>
+  </div>
+  <div class="stat-card expense">
+    <div class="stat-card-top"><span class="stat-label label-upper">Period Expense</span><div class="stat-icon expense"><i data-feather="trending-down"></i></div></div>
+    <div class="stat-value-hero">{{ format_currency(summary.expense, session.currency or 'NPR', currencies) }}</div>
+  </div>
+  <div class="stat-card balance">
+    <div class="stat-card-top"><span class="stat-label label-upper">Net</span><div class="stat-icon balance"><i data-feather="bar-chart-2"></i></div></div>
+    <div class="stat-value-hero">{{ format_currency(summary.income - summary.expense, session.currency or 'NPR', currencies) }}</div>
+  </div>
+</div>
+
+<div class="chart-row">
+  <div class="card chart-card">
+    <div class="card-header">
+      <span class="card-title">Expense by Category</span>
+      <span class="text-muted text-sm">{{ period_label }}</span>
+    </div>
+    <div class="card-body">
+      {% if pie_labels and pie_data %}
+      <div class="chart-wrap"><canvas id="donutChart" aria-label="Expense by category chart"></canvas></div>
+      {% else %}
+      <div class="empty-state-inline">
+        <i data-feather="bar-chart-2"></i>
+        <p>No expense data for this period.</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+  <div class="card chart-card">
+    <div class="card-header">
+      <span class="card-title">Daily Expenses</span>
+      <span class="text-muted text-sm">{{ month }}</span>
+    </div>
+    <div class="card-body">
+      {% if daily_labels and daily_data %}
+      <div class="chart-wrap"><canvas id="lineChart" aria-label="Daily expenses chart"></canvas></div>
+      {% else %}
+      <div class="empty-state-inline">
+        <i data-feather="trending-down"></i>
+        <p>No daily expense data for {{ month }}.</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<div class="card chart-card">
+  <div class="card-header">
+    <span class="card-title">Monthly Income vs Expense</span>
+    <span class="text-muted text-sm">Last 6 months</span>
+  </div>
+  <div class="card-body">
+    <div class="chart-wrap chart-wrap-bar"><canvas id="barChart" aria-label="Monthly income vs expense chart"></canvas></div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+(function () {
+  var rangeSelect = document.getElementById('report-range');
+  var form = document.querySelector('.reports-filter-form');
+
+  function syncReportFilters() {
+    if (!rangeSelect || !form) return;
+    var range = rangeSelect.value;
+    form.querySelectorAll('[data-for]').forEach(function (field) {
+      field.hidden = field.getAttribute('data-for') !== range;
+    });
+  }
+
+  if (rangeSelect) {
+    rangeSelect.addEventListener('change', syncReportFilters);
+    syncReportFilters();
+  }
+})();
+</script>
+<script>
+(function () {
+  if (typeof Chart === 'undefined') return;
+
+  const C = {
+    income: '#0BC990',
+    expense: '#F5476A',
+    brand: '#4F7EFF',
+    grid: 'rgba(30,43,63,0.8)',
+    text: '#5A6A85',
+    tooltip_bg: '#131922',
+    tooltip_border: '#1E2B3F',
+  };
+
+  Chart.defaults.font.family = "'Instrument Sans', sans-serif";
+  Chart.defaults.font.size = 12;
+  Chart.defaults.color = C.text;
+  Chart.defaults.borderColor = C.grid;
+
+  const tooltipOpts = {
+    backgroundColor: C.tooltip_bg,
+    borderColor: C.tooltip_border,
+    borderWidth: 1,
+    padding: 14,
+    cornerRadius: 8,
+    titleColor: '#E8EEF8',
+    bodyColor: '#8A9BB8',
+    titleFont: { family: "'Instrument Sans'", size: 13, weight: '600' },
+    bodyFont: { family: "'JetBrains Mono'", size: 12 },
+    callbacks: {
+      label: function (ctx) {
+        const v = Number(ctx.raw);
+        return ' Rs. ' + v.toLocaleString('en-IN', { minimumFractionDigits: 2 });
+      },
+    },
+  };
+
+  const crosshairPlugin = {
+    id: 'crosshair',
+    afterDraw: function (chart) {
+      const active = chart.tooltip && chart.tooltip.getActiveElements();
+      if (!active || !active.length) return;
+      const x = active[0].element.x;
+      const top = chart.chartArea.top;
+      const bottom = chart.chartArea.bottom;
+      const ctx = chart.ctx;
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(x, top);
+      ctx.lineTo(x, bottom);
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = 'rgba(79, 126, 255, 0.4)';
+      ctx.setLineDash([4, 4]);
+      ctx.stroke();
+      ctx.restore();
+    },
+  };
+
+  function verticalGradient(ctx, chartArea, topColor, bottomColor) {
+    const g = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+    g.addColorStop(0, topColor);
+    g.addColorStop(1, bottomColor);
+    return g;
+  }
+
+  function barFill(ctx, chart, rgb) {
+    const area = chart.chartArea;
+    if (!area) return 'rgba(' + rgb + ',0.75)';
+    return verticalGradient(
+      ctx,
+      area,
+      'rgba(' + rgb + ',0.95)',
+      'rgba(' + rgb + ',0.35)'
+    );
+  }
+
+  const scaleDefaults = {
+    grid: { color: C.grid, drawBorder: false, borderDash: [4, 6] },
+    ticks: { color: C.text, font: { size: 11 } },
+    border: { display: false },
+  };
+
+  const pieLabels = {{ pie_labels | tojson }};
+  const pieData = {{ pie_data | tojson }};
+
+  if (pieLabels.length && pieData.length && document.getElementById('donutChart')) {
+    const centerTextPlugin = {
+      id: 'centerText',
+      afterDraw: function (chart) {
+        const area = chart.chartArea;
+        if (!area) return;
+        const ctx = chart.ctx;
+        const total = chart.data.datasets[0].data.reduce(function (a, b) { return a + b; }, 0);
+        ctx.save();
+        ctx.font = "600 13px 'Instrument Sans'";
+        ctx.fillStyle = '#8A9BB8';
+        ctx.textAlign = 'center';
+        ctx.fillText('TOTAL', (area.left + area.right) / 2, (area.top + area.bottom) / 2 - 12);
+        ctx.font = "500 18px 'JetBrains Mono'";
+        ctx.fillStyle = '#E8EEF8';
+        const label = total >= 1000 ? 'Rs.' + (total / 1000).toFixed(1) + 'k' : 'Rs.' + total.toFixed(0);
+        ctx.fillText(label, (area.left + area.right) / 2, (area.top + area.bottom) / 2 + 10);
+        ctx.restore();
+      },
+    };
+
+    new Chart(document.getElementById('donutChart'), {
+      type: 'doughnut',
+      data: {
+        labels: pieLabels,
+        datasets: [{
+          data: pieData,
+          backgroundColor: [
+            '#0BC990', '#F5476A', '#4F7EFF', '#F5A623', '#38BDF8',
+            '#A78BFA', '#F97316', '#EC4899', '#10B981', '#6366F1',
+          ],
+          borderColor: '#0D1117',
+          borderWidth: 3,
+          hoverBorderColor: '#131922',
+          hoverOffset: 8,
+        }],
+      },
+      options: {
+        cutout: '68%',
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: { animateRotate: true, animateScale: true, duration: 900 },
+        plugins: {
+          legend: {
+            display: true,
+            position: 'bottom',
+            labels: {
+              usePointStyle: true,
+              pointStyle: 'circle',
+              padding: 16,
+              boxWidth: 8,
+              color: '#8A9BB8',
+              font: { size: 12 },
+            },
+          },
+          tooltip: tooltipOpts,
+        },
+      },
+      plugins: [centerTextPlugin],
+    });
+  }
+
+  const dailyLabels = {{ daily_labels | tojson }};
+  const dailyData = {{ daily_data | tojson }};
+  const lineEl = document.getElementById('lineChart');
+
+  if (dailyLabels.length && dailyData.length && lineEl) {
+    const lineCtx = lineEl.getContext('2d');
+    const hidePoints = dailyData.length > 20;
+
+    new Chart(lineCtx, {
+      type: 'line',
+      data: {
+        labels: dailyLabels,
+        datasets: [{
+          label: 'Daily Expense',
+          data: dailyData,
+          borderColor: C.expense,
+          backgroundColor: function (context) {
+            const chart = context.chart;
+            const area = chart.chartArea;
+            if (!area) return 'rgba(245,71,106,0.15)';
+            return verticalGradient(
+              lineCtx,
+              area,
+              'rgba(245,71,106,0.35)',
+              'rgba(245,71,106,0)'
+            );
+          },
+          fill: true,
+          tension: 0.38,
+          pointRadius: hidePoints ? 0 : 3,
+          pointHoverRadius: 7,
+          pointHitRadius: 12,
+          pointBackgroundColor: C.expense,
+          pointBorderColor: '#0D1117',
+          pointBorderWidth: 2,
+          borderWidth: 2.5,
+          segment: {
+            borderColor: function (ctx) {
+              return ctx.p0.parsed.y > ctx.p1.parsed.y
+                ? 'rgba(245,71,106,0.85)'
+                : 'rgba(245,71,106,0.55)';
+            },
+          },
+        }],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        animation: { x: { duration: 0 }, y: { duration: 800, easing: 'easeOutQuart' } },
+        plugins: {
+          legend: { display: false },
+          tooltip: Object.assign({}, tooltipOpts, { mode: 'index', intersect: false }),
+        },
+        scales: {
+          x: Object.assign({}, scaleDefaults, {
+            grid: { display: false },
+            ticks: { color: C.text, maxTicksLimit: 12, font: { size: 11 } },
+          }),
+          y: Object.assign({}, scaleDefaults, {
+            beginAtZero: true,
+            grace: '8%',
+            ticks: {
+              color: C.text,
+              maxTicksLimit: 6,
+              callback: function (v) {
+                return v >= 1000 ? 'Rs.' + (v / 1000).toFixed(0) + 'k' : 'Rs.' + v;
+              },
+              font: { size: 11, family: "'JetBrains Mono'" },
+            },
+          }),
+        },
+      },
+      plugins: [crosshairPlugin],
+    });
+  }
+
+  const barEl = document.getElementById('barChart');
+  if (barEl) {
+    const barMonths = {{ bar_months | tojson }};
+    const barIncome = {{ bar_income | tojson }};
+    const barExpense = {{ bar_expense | tojson }};
+    const monthLabels = barMonths.map(function (m) {
+      const parts = m.split('-');
+      if (parts.length === 2) {
+        const names = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        return names[parseInt(parts[1], 10) - 1] + ' ' + parts[0].slice(2);
+      }
+      return m;
+    });
+
+    new Chart(barEl, {
+      type: 'bar',
+      data: {
+        labels: monthLabels,
+        datasets: [
+          {
+            label: 'Income',
+            data: barIncome,
+            backgroundColor: function (ctx) {
+              return barFill(ctx.chart.ctx, ctx.chart, '11, 201, 144');
+            },
+            hoverBackgroundColor: 'rgba(11,201,144,1)',
+            borderRadius: { topLeft: 8, topRight: 8, bottomLeft: 2, bottomRight: 2 },
+            borderSkipped: false,
+            maxBarThickness: 36,
+          },
+          {
+            label: 'Expense',
+            data: barExpense,
+            backgroundColor: function (ctx) {
+              return barFill(ctx.chart.ctx, ctx.chart, '245, 71, 106');
+            },
+            hoverBackgroundColor: 'rgba(245,71,106,1)',
+            borderRadius: { topLeft: 8, topRight: 8, bottomLeft: 2, bottomRight: 2 },
+            borderSkipped: false,
+            maxBarThickness: 36,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        animation: { duration: 800, easing: 'easeOutQuart' },
+        plugins: {
+          legend: {
+            position: 'top',
+            align: 'end',
+            labels: {
+              usePointStyle: true,
+              pointStyle: 'rectRounded',
+              padding: 20,
+              color: C.text,
+              font: { size: 12 },
+            },
+          },
+          tooltip: Object.assign({}, tooltipOpts, { mode: 'index', intersect: false }),
+        },
+        datasets: {
+          bar: {
+            categoryPercentage: 0.72,
+            barPercentage: 0.82,
+          },
+        },
+        scales: {
+          x: Object.assign({}, scaleDefaults, {
+            grid: { display: false },
+            ticks: { color: C.text, font: { size: 11 } },
+          }),
+          y: Object.assign({}, scaleDefaults, {
+            beginAtZero: true,
+            grace: '6%',
+            ticks: {
+              color: C.text,
+              maxTicksLimit: 6,
+              callback: function (v) {
+                return v >= 1000 ? 'Rs.' + (v / 1000).toFixed(0) + 'k' : 'Rs.' + v;
+              },
+              font: { size: 11, family: "'JetBrains Mono'" },
+            },
+          }),
+        },
+      },
+    });
+  }
+
+  if (typeof feather !== 'undefined') {
+    feather.replace({ 'stroke-width': 1.5 });
+  }
+})();
+</script>
+{% endblock %}

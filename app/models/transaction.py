@@ -156,6 +156,70 @@ class TransactionModel:
             db.close()
 
     @staticmethod
+    def _search_clause():
+        return """
+            (
+                t.description LIKE %s
+                OR t.notes LIKE %s
+                OR COALESCE(c.name, '') LIKE %s
+                OR t.type LIKE %s
+                OR CAST(t.amount AS CHAR) LIKE %s
+                OR DATE_FORMAT(t.date, '%%Y-%%m-%%d') LIKE %s
+            )
+        """
+
+    @staticmethod
+    def count_search(user_id, query):
+        db = Database()
+        try:
+            pattern = f"%{query}%"
+            params = (user_id, pattern, pattern, pattern, pattern, pattern, pattern)
+            row = db.fetch_one(
+                f"""
+                SELECT COUNT(*) AS cnt
+                FROM transactions t
+                LEFT JOIN categories c ON t.category_id = c.id
+                WHERE t.user_id = %s AND {TransactionModel._search_clause()}
+                """,
+                params,
+            )
+            return int(row["cnt"]) if row else 0
+        finally:
+            db.close()
+
+    @staticmethod
+    def search(user_id, query, page=1, per_page=None):
+        db = Database()
+        try:
+            per_page = per_page or TransactionModel.PER_PAGE
+            offset = (max(page, 1) - 1) * per_page
+            pattern = f"%{query}%"
+            params = [
+                user_id,
+                pattern,
+                pattern,
+                pattern,
+                pattern,
+                pattern,
+                pattern,
+                per_page,
+                offset,
+            ]
+            return db.fetch_all(
+                f"""
+                SELECT t.*, c.name AS category_name
+                FROM transactions t
+                LEFT JOIN categories c ON t.category_id = c.id
+                WHERE t.user_id = %s AND {TransactionModel._search_clause()}
+                ORDER BY t.date DESC, t.id DESC
+                LIMIT %s OFFSET %s
+                """,
+                tuple(params),
+            )
+        finally:
+            db.close()
+
+    @staticmethod
     def get_monthly_summary(user_id, month=None):
         db = Database()
         try:

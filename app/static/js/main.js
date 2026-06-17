@@ -108,14 +108,18 @@
 
     const globalInput = document.getElementById('global-search');
     if (!globalInput) return;
+
+    const searchUrl = globalInput.getAttribute('data-search-url') || '/transactions/search';
+
     globalInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && globalInput.value.trim()) {
-        const q = globalInput.value.trim().toLowerCase();
-        document.querySelectorAll('table tbody tr').forEach((row) => {
-          const match = row.textContent.toLowerCase().includes(q);
-          row.style.background = match ? 'var(--brand-glow-sm)' : '';
-        });
+      if (e.key !== 'Enter') return;
+      e.preventDefault();
+      const q = globalInput.value.trim();
+      if (!q) {
+        window.location.href = searchUrl;
+        return;
       }
+      window.location.href = `${searchUrl}?q=${encodeURIComponent(q)}`;
     });
   }
 

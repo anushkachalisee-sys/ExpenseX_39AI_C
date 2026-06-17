@@ -1,0 +1,78 @@
+{% extends "base_user.html" %}
+{% block title %}Search — ExpenseX{% endblock %}
+{% block page_title %}Search Results{% endblock %}
+{% block content %}
+{% if query %}
+<div class="filter-bar mb-4">
+  <div class="text-sm text-muted">
+    Showing results for <strong>"{{ query }}"</strong>
+    {% if pagination.total %}({{ pagination.total }} found){% endif %}
+  </div>
+  {% if transactions %}
+  <div class="mono text-sm">Page total: {{ format_currency(total, session.currency or 'NPR', currencies) }}</div>
+  {% endif %}
+</div>
+{% endif %}
+
+{% if query and transactions %}
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th class="col-date">Date</th>
+        <th class="col-type">Type</th>
+        <th class="col-cat">Category</th>
+        <th class="col-amount">Amount</th>
+        <th class="col-desc">Description</th>
+        <th class="col-actions">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for t in transactions %}
+      <tr>
+        <td>{{ t.date }}</td>
+        <td><span class="badge badge-{{ t.type }}">{{ t.type | capitalize }}</span></td>
+        <td>{{ t.category_name or '—' }}</td>
+        <td class="amount-{{ t.type }}">{{ format_currency(t.amount, session.currency or 'NPR', currencies) }}</td>
+        <td>{{ t.description or '—' }}{% if t.notes %}<span class="text-muted text-sm"> — {{ t.notes }}</span>{% endif %}</td>
+        <td class="col-actions">
+          <a href="{{ url_for('transactions.edit', txn_id=t.id) }}" class="icon-btn" title="Edit"><i data-feather="edit-2"></i></a>
+          <form method="POST" action="{{ url_for('transactions.delete', txn_id=t.id) }}" style="display:inline" onsubmit="return confirm('Delete this transaction?')">
+            <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+            <button type="submit" class="icon-btn" title="Delete"><i data-feather="trash-2"></i></button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% if pagination.total_pages > 1 %}
+<div class="pagination">
+  {% if pagination.has_prev %}
+  <a href="?q={{ query | urlencode }}&page={{ pagination.page - 1 }}">Prev</a>
+  {% endif %}
+  <span class="active">{{ pagination.page }} / {{ pagination.total_pages }}</span>
+  {% if pagination.has_next %}
+  <a href="?q={{ query | urlencode }}&page={{ pagination.page + 1 }}">Next</a>
+  {% endif %}
+</div>
+{% endif %}
+{% elif query %}
+<div class="card">
+  <div class="empty-state">
+    <div class="empty-state-icon"><i data-feather="search"></i></div>
+    <h3>No matches found</h3>
+    <p>Try a different keyword — description, category, amount, or date.</p>
+  </div>
+</div>
+{% else %}
+<div class="card">
+  <div class="empty-state">
+    <div class="empty-state-icon"><i data-feather="search"></i></div>
+    <h3>Search transactions</h3>
+    <p>Use the search bar above and press Enter to find income and expenses.</p>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

@@ -91,6 +91,34 @@ class TransactionController:
             txn_type="expense",
         )
 
+    def search(self):
+        user_id = session["user_id"]
+        query = request.args.get("q", "").strip()
+        page = request.args.get("page", 1, type=int)
+        per_page = TransactionModel.PER_PAGE
+
+        if not query:
+            return render_template(
+                "transactions/search.html",
+                transactions=[],
+                query="",
+                total=0,
+                pagination=self._pagination(0, 1, per_page),
+            )
+
+        total_count = TransactionModel.count_search(user_id, query)
+        transactions = TransactionModel.search(user_id, query, page, per_page)
+        total_amount = sum(float(t["amount"]) for t in transactions)
+        pagination = self._pagination(total_count, page, per_page)
+
+        return render_template(
+            "transactions/search.html",
+            transactions=transactions,
+            query=query,
+            total=total_amount,
+            pagination=pagination,
+        )
+
     def _form_context(self, user_id, txn_type, transaction=None):
         return {
             "transaction": transaction,
