@@ -1,5 +1,5 @@
 from flask import Blueprint
-
+#Check routes
 from app.auth import user_required
 from app.controllers.budget_controller import BudgetController
 
