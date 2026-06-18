@@ -367,3 +367,4 @@ class AuthController:
         session["currency"] = currency
         flash("Currency updated.", "success")
         return redirect(request.referrer or url_for("auth.dashboard"))
+#working correct
