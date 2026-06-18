@@ -1,5 +1,5 @@
 from datetime import date, timedelta
-
+#User model completed
 from app.auth import hash_password
 from app.database import Database
 
