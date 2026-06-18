@@ -36,3 +36,4 @@ def to_npr(amount_display, currency_code, currencies=None):
     if rate <= 0:
         return float(amount_display)
     return float(amount_display) / rate
+#working
