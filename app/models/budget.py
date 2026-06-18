@@ -1,5 +1,5 @@
 from app.database import Database
-
+#Budget Model completed
 
 class BudgetModel:
     ACHIEVEMENTS = [
