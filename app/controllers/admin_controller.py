@@ -10,6 +10,8 @@ from app.database import log_activity
 from app.models.admin import AdminModel
 from app.models.user import UserModel
 
+#admin side controller 
+
 
 class AdminController:
     def _paginate(self, total, page, per_page):
