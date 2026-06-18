@@ -92,3 +92,4 @@ class CategoryController:
         CategoryModel.delete(cat_id, user_id)
         flash("Category deleted.", "success")
         return redirect(url_for("categories.list_all"))
+#working correct

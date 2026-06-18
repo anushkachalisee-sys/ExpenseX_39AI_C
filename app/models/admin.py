@@ -1,5 +1,5 @@
 from app.database import Database
-
+#Admin models completed
 
 class AdminModel:
     PER_PAGE = 20

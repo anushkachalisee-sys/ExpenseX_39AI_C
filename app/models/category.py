@@ -1,5 +1,5 @@
 from app.database import Database
-
+#Category Model completed
 
 class CategoryModel:
     @staticmethod

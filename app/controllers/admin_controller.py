@@ -41,7 +41,7 @@ class AdminController:
             signup_data=signup_data,
             top_users=top_users,
         )
-
+#working correct
     def users(self):
         page = request.args.get("page", 1, type=int)
         per_page = AdminModel.PER_PAGE
@@ -244,3 +244,4 @@ class AdminController:
         AdminModel.delete_global_category(cat_id)
         flash("Global category deleted.", "success")
         return redirect(url_for("admin.global_categories"))
+#working correct

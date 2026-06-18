@@ -78,3 +78,4 @@ def create_app():
         return render_template("errors/500.html"), 500
 
     return app
+#WORKING BLUE PRINT
