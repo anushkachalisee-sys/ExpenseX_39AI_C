@@ -144,3 +144,4 @@ class BudgetController:
         BudgetModel.delete_goal(goal_id, user_id)
         flash("Goal deleted.", "success")
         return redirect(url_for("budget.index"))
+#working correct
