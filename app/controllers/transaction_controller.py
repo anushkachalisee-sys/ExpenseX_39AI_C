@@ -284,3 +284,4 @@ class TransactionController:
         if txn_type == "income":
             return redirect(url_for("transactions.list_income"))
         return redirect(url_for("transactions.list_expense"))
+#working correct
