@@ -9,7 +9,7 @@ from app.models.budget import BudgetModel
 from app.models.category import CategoryModel
 from app.models.transaction import TransactionModel
 from app.models.user import UserModel
-
+#auth side done and complete
 
 def health_score(total_income, total_expense):
     if total_income == 0:
