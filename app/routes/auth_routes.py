@@ -1,5 +1,5 @@
 from flask import Blueprint
-
+#Check routes
 from app.auth import login_required, user_required
 from app.controllers.auth_controller import AuthController
 
