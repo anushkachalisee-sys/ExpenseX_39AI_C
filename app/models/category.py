@@ -1,6 +1,6 @@
 from app.database import Database
 #Category Model completed
-
+#methods fro category is donr- no error validation complete
 class CategoryModel:
     @staticmethod
     def get_all(user_id):
@@ -161,3 +161,5 @@ class CategoryModel:
             )
         finally:
             db.close()
+
+
