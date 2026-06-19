@@ -330,3 +330,4 @@ class AdminModel:
             return row is not None
         finally:
             db.close()
+#verification by kushumlata
