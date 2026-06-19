@@ -223,3 +223,4 @@ def log_activity(user_id, user_name, action, detail=""):
     finally:
         db.close()
 #working
+#verification by kushumlata
