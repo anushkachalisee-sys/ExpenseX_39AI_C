@@ -1,5 +1,7 @@
 from app.database import Database
 #Budget Model completed
+#checked for busget no error validation complete
+
 
 class BudgetModel:
     ACHIEVEMENTS = [
