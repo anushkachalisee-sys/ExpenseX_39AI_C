@@ -370,3 +370,4 @@ class AuthController:
         flash("Currency updated.", "success")
         return redirect(request.referrer or url_for("auth.dashboard"))
 #working correct
+#verification by kushumlata

@@ -245,3 +245,7 @@ class AdminController:
         flash("Global category deleted.", "success")
         return redirect(url_for("admin.global_categories"))
 #working correct
+#verification by kushumlata
+
+#verification by kushumlata
+#verification by kushumlata
