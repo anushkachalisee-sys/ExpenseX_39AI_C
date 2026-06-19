@@ -331,4 +331,3 @@ class AdminModel:
         finally:
             db.close()
 #verification by kushumlata
-#checked
