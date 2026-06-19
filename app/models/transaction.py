@@ -496,3 +496,4 @@ class TransactionModel:
             }
         finally:
             db.close()
+#verification by kushumlta
