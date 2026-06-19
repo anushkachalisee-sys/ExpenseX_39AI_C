@@ -146,3 +146,4 @@ class BudgetController:
         flash("Goal deleted.", "success")
         return redirect(url_for("budget.index"))
 #working correct
+#verification by kushumlta
