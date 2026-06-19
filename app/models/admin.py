@@ -3,6 +3,7 @@ from app.database import Database
 #checked fro admin method no errors validation complete
 #checking
 #working in this file
+#checked
 class AdminModel:
     PER_PAGE = 20
 
