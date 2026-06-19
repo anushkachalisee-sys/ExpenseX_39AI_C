@@ -286,3 +286,4 @@ class TransactionController:
             return redirect(url_for("transactions.list_income"))
         return redirect(url_for("transactions.list_expense"))
 #working correct
+#verification by kushumlata
