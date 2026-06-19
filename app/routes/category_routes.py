@@ -30,4 +30,3 @@ class CategoryRoutes:
     def delete(self, cat_id):
         return self.controller.delete(cat_id)
 # verification by kushumlata
-#checked
