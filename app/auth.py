@@ -69,3 +69,4 @@ def admin_required(f):
 
     return decorated
 #Working
+#verification by kushumlata
