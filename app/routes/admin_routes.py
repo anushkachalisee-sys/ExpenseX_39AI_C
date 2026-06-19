@@ -68,4 +68,3 @@ class AdminRoutes:
     def delete_global_category(self, cat_id):
         return self.controller.delete_global_category(cat_id)
 #verification by kushumlata
-#checked
