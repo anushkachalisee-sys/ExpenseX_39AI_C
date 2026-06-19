@@ -1,6 +1,10 @@
 from datetime import date, timedelta
 #Transaction Model completed
 from app.database import Database
+#check for transition
+#ongoing
+#done
+#no error validation complete
 
 
 class TransactionModel:
