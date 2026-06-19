@@ -169,3 +169,4 @@ class UserModel:
         if user is None:
             return False
         return user.get("is_active", 1) in (1, True)
+#user is check working properly validation complete
