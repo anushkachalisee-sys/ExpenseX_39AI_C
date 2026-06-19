@@ -1,5 +1,6 @@
 from app.database import Database
 #Admin models completed
+#checked fro admin method no errors validation complete
 
 class AdminModel:
     PER_PAGE = 20
