@@ -1,3 +1,4 @@
+#checked auth
 import hashlib
 import secrets
 from functools import wraps
