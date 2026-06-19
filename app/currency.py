@@ -37,3 +37,4 @@ def to_npr(amount_display, currency_code, currencies=None):
         return float(amount_display)
     return float(amount_display) / rate
 #working
+#verification by kushumlata
