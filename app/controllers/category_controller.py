@@ -94,3 +94,4 @@ class CategoryController:
         flash("Category deleted.", "success")
         return redirect(url_for("categories.list_all"))
 #working correct
+#verification by kushumlata
