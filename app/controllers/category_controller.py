@@ -95,3 +95,4 @@ class CategoryController:
         return redirect(url_for("categories.list_all"))
 #working correct
 #verification by kushumlata
+#verification by kushumlata
