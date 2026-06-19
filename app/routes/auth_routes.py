@@ -41,3 +41,4 @@ class AuthRoutes:
     def set_currency(self):
         return self.controller.update_currency()
 #verification by kushumlata
+#checked
