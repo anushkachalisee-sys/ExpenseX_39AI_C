@@ -3,6 +3,7 @@ from app.database import Database
 #checked for busget no error validation complete
 #working in this file
 #checked
+#budget checked
 class BudgetModel:
     ACHIEVEMENTS = [
         {
